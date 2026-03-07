@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>atoms · private p2p chat</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 16px;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: #1a1a1a;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 500;
+            margin-bottom: 24px;
+            color: #fff;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        h1 span { color: #4caf9e; font-weight: 600; }
+        .section {
+            background: #232323;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid #333;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .id-box {
+            background: #0f0f0f;
+            padding: 14px;
+            border-radius: 12px;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+            border: 1px solid #3a3a3a;
+            color: #4caf9e;
+            margin-bottom: 20px;
+        }
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            background: white;
+            padding: 16px;
+            border-radius: 16px;
+        }
+        .input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .input-group input {
+            flex: 1;
+            background: #0f0f0f;
+            border: 1px solid #3a3a3a;
+            border-radius: 30px;
+            padding: 12px 16px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+        .input-group input:focus { border-color: #4caf9e; }
+        .btn {
+            background: #4caf9e;
+            border: none;
+            border-radius: 30px;
+            padding: 12px 24px;
+            color: black;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .btn:hover { background: #5dbfb0; }
+        .btn.secondary { background: #333; color: white; }
+        .btn.secondary:hover { background: #444; }
+        #chat {
+            background: #0f0f0f;
+            border-radius: 16px;
+            padding: 16px;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+            border: 1px solid #333;
+        }
+        .message { margin: 12px 0; line-height: 1.4; }
+        .mine { text-align: right; color: #4caf9e; }
+        .theirs { text-align: left; color: #e0e0e0; }
+        .timestamp { font-size: 10px; color: #666; margin-top: 4px; }
+        .chat-controls {
+            display: flex;
+            gap: 8px;
+        }
+        .chat-controls input {
+            flex: 1;
+            background: #0f0f0f;
+            border: 1px solid #3a3a3a;
+            border-radius: 30px;
+            padding: 12px 16px;
+            color: white;
+            outline: none;
+        }
+        .note { color: #666; font-size: 12px; margin-top: 16px; text-align: center; }
+    </style>
+    <!-- PeerJS и QRCode библиотеки -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>⚛️ <span>atoms</span> · private p2p</h1>
+        
+        <!-- Your ID секция -->
+        <div class="section">
+            <div class="section-title">your id</div>
+            <div id="myId" class="id-box">generating...</div>
+            <div id="qrcode"></div>
+            <div class="note">share this qr or id to connect</div>
+        </div>
+
+        <!-- Connect секция -->
+        <div class="section">
+            <div class="section-title">connect to peer</div>
+            <div class="input-group">
+                <input type="text" id="peerIdInput" placeholder="paste peer id">
+                <button id="connectBtn" class="btn">connect</button>
+            </div>
+        </div>
+
+        <!-- Чат секция (скрыта изначально) -->
+        <div id="chatSection" style="display: none;">
+            <div class="section">
+                <div class="section-title">chat</div>
+                <div id="chat"></div>
+                <div class="chat-controls">
+                    <input type="text" id="messageInput" placeholder="type a message...">
+                    <button id="sendBtn" class="btn">➡️</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
