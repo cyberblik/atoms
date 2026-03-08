@@ -7,9 +7,9 @@ function generatePeerId() {
 let peer = null;
 let currentConnection = null;
 
-// ⚠️ ВАЖНО: адрес твоего сигнального сервера на Vercel
+// Используем готовый рабочий сигнальный сервер (Railway)
 const SIGNAL_SERVER = {
-    host: 'ntu.vercel.app',  // ← вот это твой адрес с Vercel
+    host: 'atoms-signal-production.up.railway.app',
     path: '/',
     secure: true
 };
@@ -35,7 +35,7 @@ function initPeer() {
                 { urls: 'stun:stun4.l.google.com:19302' }
             ]
         },
-        serialization: 'json',
+        serialization: 'json', // JSON для всех браузеров
         debug: 2
     };
 
@@ -44,6 +44,7 @@ function initPeer() {
     try {
         peer = new Peer(generatePeerId(), peerOptions);
 
+        // Таймаут на случай долгого соединения
         const timeout = setTimeout(() => {
             if (!peer || !peer._open) {
                 startBtn.disabled = false;
@@ -60,7 +61,7 @@ function initPeer() {
             document.getElementById('startSection').style.display = 'none';
             document.getElementById('idSection').style.display = 'block';
             
-            // QR-код
+            // Упрощённый QR-код (текстом)
             const qrContainer = document.getElementById('qrcode');
             qrContainer.innerHTML = '';
             const canvas = document.createElement('canvas');
