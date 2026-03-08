@@ -1,32 +1,50 @@
+// Функция для определения iOS
+function isIOS() {
+    return [
+        'iPad Simulator',
+        'iPhone Simulator',
+        'iPod Simulator',
+        'iPad',
+        'iPhone',
+        'iPod'
+    ].includes(navigator.platform)
+    || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+}
+
 // Генерируем ID локально
 function generatePeerId() {
     return Math.random().toString(36).substring(2, 10) + 
            Math.random().toString(36).substring(2, 10);
 }
 
-// Создаём peer с опциями, которые не используют облачный сервер
-const peer = new Peer(generatePeerId(), {
-    host: '0.peerjs.com',
-    port: 443,
-    secure: true,
-    config: {'iceServers': [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-    ]}
-});
+// Настройки для Peer
+const peerOptions = {
+    config: {
+        'iceServers': [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+    }
+};
 
+// Если это iOS — включаем JSON сериализацию
+if (isIOS()) {
+    peerOptions.serialization = 'json';
+    console.log('iOS detected, using JSON serialization');
+}
+
+const peer = new Peer(generatePeerId(), peerOptions);
 let currentConnection = null;
 
 peer.on('open', (id) => {
     document.getElementById('myId').innerText = id;
     
-    // Создаём QR-код вручную через canvas (без библиотеки)
+    // Создаём QR-код (упрощённый)
     const qrContainer = document.getElementById('qrcode');
     qrContainer.innerHTML = '';
     const canvas = document.createElement('canvas');
     qrContainer.appendChild(canvas);
     
-    // Простая генерация QR (можно позже добавить нормальную библиотеку)
     canvas.width = 200;
     canvas.height = 200;
     const ctx = canvas.getContext('2d');
@@ -36,7 +54,6 @@ peer.on('open', (id) => {
     ctx.font = '12px monospace';
     ctx.fillText('ID:', 10, 30);
     
-    // Показываем ID короткими блоками
     const shortId = id.match(/.{1,4}/g)?.join(' ') || id;
     ctx.fillText(shortId, 10, 60);
     ctx.fillText('(scan manually)', 10, 90);
@@ -50,7 +67,11 @@ peer.on('connection', (connection) => {
 document.getElementById('connectBtn').addEventListener('click', () => {
     const peerId = document.getElementById('peerIdInput').value.trim();
     if (!peerId) return alert('enter peer id');
-    const conn = peer.connect(peerId);
+    
+    // Для iOS тоже используем JSON при подключении
+    const connOptions = isIOS() ? { serialization: 'json' } : {};
+    const conn = peer.connect(peerId, connOptions);
+    
     currentConnection = conn;
     setupChat(conn);
 });
