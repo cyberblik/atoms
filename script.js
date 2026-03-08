@@ -1,11 +1,3 @@
-// Функция для определения проблемных браузеров
-function isProblematicBrowser() {
-    const ua = navigator.userAgent;
-    return ua.includes("Edg") || // Edge
-           ua.includes("YaBrowser") || // Яндекс.Браузер
-           /iPhone|iPad|iPod/i.test(navigator.userAgent); // iOS
-}
-
 // Генерируем ID локально
 function generatePeerId() {
     return Math.random().toString(36).substring(2, 10) + 
@@ -14,17 +6,26 @@ function generatePeerId() {
 
 let peer = null;
 let currentConnection = null;
-let initAttempts = 0;
 
-// Функция инициализации Peer с повторными попытками
+// ⚠️ ВАЖНО: адрес твоего сигнального сервера на Vercel
+const SIGNAL_SERVER = {
+    host: 'ntu.vercel.app',  // ← вот это твой адрес с Vercel
+    path: '/',
+    secure: true
+};
+
+// Функция инициализации Peer
 function initPeer() {
     const startBtn = document.getElementById('startBtn');
     startBtn.disabled = true;
     startBtn.textContent = 'Initializing...';
     
-    // Настройки для Peer - для ВСЕХ браузеров используем JSON
+    // Настройки для Peer
     const peerOptions = {
-        serialization: 'json', // JSON для всех!
+        host: SIGNAL_SERVER.host,
+        path: SIGNAL_SERVER.path,
+        secure: SIGNAL_SERVER.secure,
+        port: 443,
         config: {
             'iceServers': [
                 { urls: 'stun:stun.l.google.com:19302' },
@@ -33,35 +34,33 @@ function initPeer() {
                 { urls: 'stun:stun3.l.google.com:19302' },
                 { urls: 'stun:stun4.l.google.com:19302' }
             ]
-        }
+        },
+        serialization: 'json',
+        debug: 2
     };
 
-    console.log('Initializing Peer with JSON serialization');
+    console.log('Connecting to signal server:', SIGNAL_SERVER.host);
     
     try {
         peer = new Peer(generatePeerId(), peerOptions);
 
-        // Таймаут на случай, если Peer не отвечает
         const timeout = setTimeout(() => {
-            if (!peer._open) {
-                console.log('Peer initialization timeout, retrying...');
+            if (!peer || !peer._open) {
                 startBtn.disabled = false;
                 startBtn.textContent = 'Try Again';
-                alert('Connection timeout. Please try again.');
+                alert('Connection timeout. Check your internet.');
             }
         }, 10000);
 
         peer.on('open', (id) => {
             clearTimeout(timeout);
-            console.log('Peer opened with ID:', id);
+            console.log('✅ Connected! ID:', id);
             
             document.getElementById('myId').innerText = id;
-            
-            // Скрываем кнопку Start, показываем ID и QR
             document.getElementById('startSection').style.display = 'none';
             document.getElementById('idSection').style.display = 'block';
             
-            // Создаём QR-код (упрощённый)
+            // QR-код
             const qrContainer = document.getElementById('qrcode');
             qrContainer.innerHTML = '';
             const canvas = document.createElement('canvas');
@@ -83,10 +82,10 @@ function initPeer() {
 
         peer.on('error', (err) => {
             clearTimeout(timeout);
-            console.error('Peer error:', err);
+            console.error('❌ Peer error:', err);
             startBtn.disabled = false;
-            startBtn.textContent = 'Start atoms';
-            alert('Failed to initialize: ' + err.type);
+            startBtn.textContent = 'Try Again';
+            alert('Failed: ' + err.type);
         });
 
         peer.on('connection', (connection) => {
@@ -98,51 +97,34 @@ function initPeer() {
         console.error('Exception:', e);
         startBtn.disabled = false;
         startBtn.textContent = 'Start atoms';
-        alert('Error initializing: ' + e.message);
+        alert('Error: ' + e.message);
     }
 }
 
-// Обработчик кнопки Start
-document.getElementById('startBtn').addEventListener('click', () => {
-    initPeer();
-});
+// Обработчики кнопок
+document.getElementById('startBtn').addEventListener('click', initPeer);
 
 document.getElementById('connectBtn').addEventListener('click', () => {
     const peerId = document.getElementById('peerIdInput').value.trim();
     if (!peerId) return alert('enter peer id');
     if (!peer) {
-        alert('Please generate your ID first by clicking Start');
+        alert('Generate your ID first');
         return;
     }
     
-    console.log('Connecting to peer:', peerId);
-    
-    // Для ВСЕХ браузеров используем JSON
-    const connOptions = { serialization: 'json' };
-    const conn = peer.connect(peerId, connOptions);
-    
+    const conn = peer.connect(peerId, { serialization: 'json' });
     currentConnection = conn;
     setupChat(conn);
 });
 
-// Остальная часть кода (setupChat, addMessage) без изменений
 function setupChat(connection) {
     document.getElementById('chatSection').style.display = 'block';
     const messagesDiv = document.getElementById('chat');
     messagesDiv.innerHTML = '';
     
-    connection.on('open', () => {
-        addMessage('• connected •', 'system');
-    });
-    
-    connection.on('data', (data) => {
-        addMessage(data, 'their');
-    });
-    
-    connection.on('error', (err) => {
-        addMessage(`error: ${err}`, 'system');
-    });
-    
+    connection.on('open', () => addMessage('• connected •', 'system'));
+    connection.on('data', (data) => addMessage(data, 'their'));
+    connection.on('error', (err) => addMessage(`error: ${err}`, 'system'));
     connection.on('close', () => {
         addMessage('• disconnected •', 'system');
         document.getElementById('chatSection').style.display = 'none';
@@ -159,9 +141,7 @@ function setupChat(connection) {
     };
     
     document.getElementById('messageInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            document.getElementById('sendBtn').click();
-        }
+        if (e.key === 'Enter') document.getElementById('sendBtn').click();
     });
 }
 
