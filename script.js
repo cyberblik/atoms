@@ -7,9 +7,8 @@ function generatePeerId() {
 let peer = null;
 let currentConnection = null;
 
-// Используем готовый рабочий сигнальный сервер (Railway)
 const SIGNAL_SERVER = {
-    host: 'atoms-signal-production.up.railway.app',
+    host: 'atoms-signal.vercel.app',  // ← ТВОЙ НОВЫЙ СЕРВЕР
     path: '/',
     secure: true
 };
@@ -168,3 +167,4 @@ function addMessage(text, type) {
     messagesDiv.appendChild(msgDiv);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
+
