@@ -1,14 +1,9 @@
-// Функция для определения iOS
-function isIOS() {
-    return [
-        'iPad Simulator',
-        'iPhone Simulator',
-        'iPod Simulator',
-        'iPad',
-        'iPhone',
-        'iPod'
-    ].includes(navigator.platform)
-    || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+// Функция для определения проблемных браузеров
+function isProblematicBrowser() {
+    const ua = navigator.userAgent;
+    return ua.includes("Edg") || // Edge
+           ua.includes("YaBrowser") || // Яндекс.Браузер
+           /iPhone|iPad|iPod/i.test(navigator.userAgent); // iOS
 }
 
 // Генерируем ID локально
@@ -19,58 +14,92 @@ function generatePeerId() {
 
 let peer = null;
 let currentConnection = null;
+let initAttempts = 0;
 
-// Функция инициализации Peer (вызывается по кнопке)
+// Функция инициализации Peer с повторными попытками
 function initPeer() {
-    // Настройки для Peer
+    const startBtn = document.getElementById('startBtn');
+    startBtn.disabled = true;
+    startBtn.textContent = 'Initializing...';
+    
+    // Настройки для Peer - для ВСЕХ браузеров используем JSON
     const peerOptions = {
+        serialization: 'json', // JSON для всех!
         config: {
             'iceServers': [
                 { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' }
             ]
         }
     };
 
-    // Если это iOS — включаем JSON сериализацию
-    if (isIOS()) {
-        peerOptions.serialization = 'json';
-        console.log('iOS detected, using JSON serialization');
+    console.log('Initializing Peer with JSON serialization');
+    
+    try {
+        peer = new Peer(generatePeerId(), peerOptions);
+
+        // Таймаут на случай, если Peer не отвечает
+        const timeout = setTimeout(() => {
+            if (!peer._open) {
+                console.log('Peer initialization timeout, retrying...');
+                startBtn.disabled = false;
+                startBtn.textContent = 'Try Again';
+                alert('Connection timeout. Please try again.');
+            }
+        }, 10000);
+
+        peer.on('open', (id) => {
+            clearTimeout(timeout);
+            console.log('Peer opened with ID:', id);
+            
+            document.getElementById('myId').innerText = id;
+            
+            // Скрываем кнопку Start, показываем ID и QR
+            document.getElementById('startSection').style.display = 'none';
+            document.getElementById('idSection').style.display = 'block';
+            
+            // Создаём QR-код (упрощённый)
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            const canvas = document.createElement('canvas');
+            qrContainer.appendChild(canvas);
+            
+            canvas.width = 200;
+            canvas.height = 200;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 200, 200);
+            ctx.fillStyle = '#000000';
+            ctx.font = '12px monospace';
+            ctx.fillText('ID:', 10, 30);
+            
+            const shortId = id.match(/.{1,4}/g)?.join(' ') || id;
+            ctx.fillText(shortId, 10, 60);
+            ctx.fillText('(scan manually)', 10, 90);
+        });
+
+        peer.on('error', (err) => {
+            clearTimeout(timeout);
+            console.error('Peer error:', err);
+            startBtn.disabled = false;
+            startBtn.textContent = 'Start atoms';
+            alert('Failed to initialize: ' + err.type);
+        });
+
+        peer.on('connection', (connection) => {
+            currentConnection = connection;
+            setupChat(connection);
+        });
+        
+    } catch (e) {
+        console.error('Exception:', e);
+        startBtn.disabled = false;
+        startBtn.textContent = 'Start atoms';
+        alert('Error initializing: ' + e.message);
     }
-
-    peer = new Peer(generatePeerId(), peerOptions);
-
-    peer.on('open', (id) => {
-        document.getElementById('myId').innerText = id;
-        
-        // Скрываем кнопку Start, показываем ID и QR
-        document.getElementById('startSection').style.display = 'none';
-        document.getElementById('idSection').style.display = 'block';
-        
-        // Создаём QR-код (упрощённый)
-        const qrContainer = document.getElementById('qrcode');
-        qrContainer.innerHTML = '';
-        const canvas = document.createElement('canvas');
-        qrContainer.appendChild(canvas);
-        
-        canvas.width = 200;
-        canvas.height = 200;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, 200, 200);
-        ctx.fillStyle = '#000000';
-        ctx.font = '12px monospace';
-        ctx.fillText('ID:', 10, 30);
-        
-        const shortId = id.match(/.{1,4}/g)?.join(' ') || id;
-        ctx.fillText(shortId, 10, 60);
-        ctx.fillText('(scan manually)', 10, 90);
-    });
-
-    peer.on('connection', (connection) => {
-        currentConnection = connection;
-        setupChat(connection);
-    });
 }
 
 // Обработчик кнопки Start
@@ -86,14 +115,17 @@ document.getElementById('connectBtn').addEventListener('click', () => {
         return;
     }
     
-    // Для iOS тоже используем JSON при подключении
-    const connOptions = isIOS() ? { serialization: 'json' } : {};
+    console.log('Connecting to peer:', peerId);
+    
+    // Для ВСЕХ браузеров используем JSON
+    const connOptions = { serialization: 'json' };
     const conn = peer.connect(peerId, connOptions);
     
     currentConnection = conn;
     setupChat(conn);
 });
 
+// Остальная часть кода (setupChat, addMessage) без изменений
 function setupChat(connection) {
     document.getElementById('chatSection').style.display = 'block';
     const messagesDiv = document.getElementById('chat');
