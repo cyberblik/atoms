@@ -138,14 +138,20 @@
     <div class="container">
         <h1>⚛️ <span>atoms</span> · private p2p</h1>
         
-        <!-- Your ID секция -->
-        <div class="section">
-            <div class="section-title">your id</div>
-            <div id="myId" class="id-box">generating...</div>
-            <div id="qrcode"></div>
-            <div class="note">share this qr or id to connect</div>
-        </div>
+       <!-- Start секция (показывается сначала) -->
+<div class="section" id="startSection">
+    <div class="section-title">start</div>
+    <button id="startBtn" class="btn" style="width: 100%;">Start atoms</button>
+    <div class="note">click to generate your ID</div>
+</div>
 
+<!-- Your ID секция (показывается после нажатия Start) -->
+<div class="section" id="idSection" style="display: none;">
+    <div class="section-title">your id</div>
+    <div id="myId" class="id-box"></div>
+    <div id="qrcode"></div>
+    <div class="note">share this qr or id to connect</div>
+</div>
         <!-- Connect секция -->
         <div class="section">
             <div class="section-title">connect to peer</div>
@@ -170,4 +176,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>
