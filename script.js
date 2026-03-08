@@ -17,56 +17,74 @@ function generatePeerId() {
            Math.random().toString(36).substring(2, 10);
 }
 
-// Настройки для Peer
-const peerOptions = {
-    config: {
-        'iceServers': [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' }
-        ]
-    }
-};
-
-// Если это iOS — включаем JSON сериализацию
-if (isIOS()) {
-    peerOptions.serialization = 'json';
-    console.log('iOS detected, using JSON serialization');
-}
-
-const peer = new Peer(generatePeerId(), peerOptions);
+let peer = null;
 let currentConnection = null;
 
-peer.on('open', (id) => {
-    document.getElementById('myId').innerText = id;
-    
-    // Создаём QR-код (упрощённый)
-    const qrContainer = document.getElementById('qrcode');
-    qrContainer.innerHTML = '';
-    const canvas = document.createElement('canvas');
-    qrContainer.appendChild(canvas);
-    
-    canvas.width = 200;
-    canvas.height = 200;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, 200, 200);
-    ctx.fillStyle = '#000000';
-    ctx.font = '12px monospace';
-    ctx.fillText('ID:', 10, 30);
-    
-    const shortId = id.match(/.{1,4}/g)?.join(' ') || id;
-    ctx.fillText(shortId, 10, 60);
-    ctx.fillText('(scan manually)', 10, 90);
-});
+// Функция инициализации Peer (вызывается по кнопке)
+function initPeer() {
+    // Настройки для Peer
+    const peerOptions = {
+        config: {
+            'iceServers': [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        }
+    };
 
-peer.on('connection', (connection) => {
-    currentConnection = connection;
-    setupChat(connection);
+    // Если это iOS — включаем JSON сериализацию
+    if (isIOS()) {
+        peerOptions.serialization = 'json';
+        console.log('iOS detected, using JSON serialization');
+    }
+
+    peer = new Peer(generatePeerId(), peerOptions);
+
+    peer.on('open', (id) => {
+        document.getElementById('myId').innerText = id;
+        
+        // Скрываем кнопку Start, показываем ID и QR
+        document.getElementById('startSection').style.display = 'none';
+        document.getElementById('idSection').style.display = 'block';
+        
+        // Создаём QR-код (упрощённый)
+        const qrContainer = document.getElementById('qrcode');
+        qrContainer.innerHTML = '';
+        const canvas = document.createElement('canvas');
+        qrContainer.appendChild(canvas);
+        
+        canvas.width = 200;
+        canvas.height = 200;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 200, 200);
+        ctx.fillStyle = '#000000';
+        ctx.font = '12px monospace';
+        ctx.fillText('ID:', 10, 30);
+        
+        const shortId = id.match(/.{1,4}/g)?.join(' ') || id;
+        ctx.fillText(shortId, 10, 60);
+        ctx.fillText('(scan manually)', 10, 90);
+    });
+
+    peer.on('connection', (connection) => {
+        currentConnection = connection;
+        setupChat(connection);
+    });
+}
+
+// Обработчик кнопки Start
+document.getElementById('startBtn').addEventListener('click', () => {
+    initPeer();
 });
 
 document.getElementById('connectBtn').addEventListener('click', () => {
     const peerId = document.getElementById('peerIdInput').value.trim();
     if (!peerId) return alert('enter peer id');
+    if (!peer) {
+        alert('Please generate your ID first by clicking Start');
+        return;
+    }
     
     // Для iOS тоже используем JSON при подключении
     const connOptions = isIOS() ? { serialization: 'json' } : {};
