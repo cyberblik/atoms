@@ -5,131 +5,197 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>atoms · private p2p chat</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0a;
-            color: #e0e0e0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 16px;
-        }
-        .container {
-            max-width: 600px;
-            width: 100%;
-            background: #1a1a1a;
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-            border: 1px solid #333;
-        }
-        h1 {
-            font-size: 28px;
-            font-weight: 500;
-            margin-bottom: 24px;
-            color: #fff;
-            letter-spacing: -0.5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        h1 span { color: #4caf9e; font-weight: 600; }
-        .section {
-            background: #232323;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 24px;
-            border: 1px solid #333;
-        }
-        .section-title {
-            font-size: 16px;
-            font-weight: 500;
-            margin-bottom: 16px;
-            color: #aaa;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .id-box {
-            background: #0f0f0f;
-            padding: 14px;
-            border-radius: 12px;
-            font-family: monospace;
-            font-size: 14px;
-            word-break: break-all;
-            border: 1px solid #3a3a3a;
-            color: #4caf9e;
-            margin-bottom: 20px;
-        }
-        #qrcode {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-            background: white;
-            padding: 16px;
-            border-radius: 16px;
-        }
-        .input-group {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        .input-group input {
-            flex: 1;
-            background: #0f0f0f;
-            border: 1px solid #3a3a3a;
-            border-radius: 30px;
-            padding: 12px 16px;
-            color: white;
-            font-size: 14px;
-            outline: none;
-        }
-        .input-group input:focus { border-color: #4caf9e; }
-        .btn {
-            background: #4caf9e;
-            border: none;
-            border-radius: 30px;
-            padding: 12px 24px;
-            color: black;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 14px;
-            white-space: nowrap;
-        }
-        .btn:hover { background: #5dbfb0; }
-        .btn.secondary { background: #333; color: white; }
-        .btn.secondary:hover { background: #444; }
-        #chat {
-            background: #0f0f0f;
-            border-radius: 16px;
-            padding: 16px;
-            height: 300px;
-            overflow-y: auto;
-            margin-bottom: 16px;
-            border: 1px solid #333;
-        }
-        .message { margin: 12px 0; line-height: 1.4; }
-        .mine { text-align: right; color: #4caf9e; }
-        .theirs { text-align: left; color: #e0e0e0; }
-        .timestamp { font-size: 10px; color: #666; margin-top: 4px; }
-        .chat-controls {
-            display: flex;
-            gap: 8px;
-        }
-        .chat-controls input {
-            flex: 1;
-            background: #0f0f0f;
-            border: 1px solid #3a3a3a;
-            border-radius: 30px;
-            padding: 12px 16px;
-            color: white;
-            outline: none;
-        }
-        .note { color: #666; font-size: 12px; margin-top: 16px; text-align: center; }
-    </style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+        background: #000;
+        color: #fff;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+    
+    .container {
+        max-width: 480px;
+        width: 100%;
+        margin: 0 auto;
+    }
+    
+    h1 {
+        font-size: 32px;
+        font-weight: 600;
+        margin-bottom: 28px;
+        color: #fff;
+        letter-spacing: -0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    h1 span { 
+        color: #0a84ff; 
+        font-weight: 700;
+        background: linear-gradient(135deg, #0a84ff, #5e5ce6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .section {
+        background: #1c1c1e;
+        border-radius: 28px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        border: 0.5px solid #38383a;
+    }
+    
+    .section-title {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #8e8e93;
+        margin-bottom: 16px;
+    }
+    
+    .id-box {
+        background: #2c2c2e;
+        border-radius: 20px;
+        padding: 20px;
+        font-family: 'SF Mono', 'Courier New', monospace;
+        font-size: 18px;
+        text-align: center;
+        color: #0a84ff;
+        border: 1px solid #3a3a3c;
+        margin-bottom: 20px;
+        word-break: break-all;
+    }
+    
+    #qrcode {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        margin: 20px 0;
+        display: flex;
+        justify-content: center;
+    }
+    
+    #qrcode canvas {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+    }
+    
+    .input-group {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .input-group input {
+        flex: 1;
+        background: #2c2c2e;
+        border: 1px solid #3a3a3c;
+        border-radius: 40px;
+        padding: 16px 20px;
+        color: white;
+        font-size: 16px;
+        outline: none;
+    }
+    
+    .input-group input:focus {
+        border-color: #0a84ff;
+    }
+    
+    .btn {
+        background: #0a84ff;
+        color: white;
+        border: none;
+        border-radius: 40px;
+        padding: 16px 24px;
+        font-size: 17px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    
+    .btn:hover {
+        background: #0071e3;
+        transform: scale(0.98);
+    }
+    
+    .btn:disabled {
+        background: #3a3a3c;
+        cursor: not-allowed;
+    }
+    
+    #chat {
+        background: #2c2c2e;
+        border-radius: 24px;
+        padding: 16px;
+        height: 350px;
+        overflow-y: auto;
+        margin-bottom: 16px;
+        border: 1px solid #3a3a3c;
+    }
+    
+    .message {
+        margin: 16px 0;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .mine {
+        text-align: right;
+        color: #0a84ff;
+    }
+    
+    .theirs {
+        text-align: left;
+        color: #fff;
+    }
+    
+    .timestamp {
+        font-size: 11px;
+        color: #8e8e93;
+        margin-top: 4px;
+    }
+    
+    .chat-controls {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .chat-controls input {
+        flex: 1;
+        background: #2c2c2e;
+        border: 1px solid #3a3a3c;
+        border-radius: 40px;
+        padding: 16px 20px;
+        color: white;
+        font-size: 16px;
+        outline: none;
+    }
+    
+    .chat-controls button {
+        width: auto;
+        padding: 16px 24px;
+    }
+    
+    .note {
+        color: #8e8e93;
+        font-size: 13px;
+        text-align: center;
+        margin-top: 16px;
+    }
+</style>
     <!-- PeerJS и QRCode библиотеки -->
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -168,7 +234,7 @@
                 <div id="chat"></div>
                 <div class="chat-controls">
                     <input type="text" id="messageInput" placeholder="type a message...">
-                    <button id="sendBtn" class="btn">➡️</button>
+                    <button id="sendBtn" class="btn">Send</button>
                 </div>
             </div>
         </div>
@@ -178,3 +244,4 @@
 </body>
 
 </html>
+
