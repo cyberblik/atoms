@@ -68,7 +68,7 @@ function initPeer() {
                 width: 200,
                 height: 200,
                 colorDark: "#000000",
-                colorLight: "#2a2a2a", // тёмно-серый фон
+                colorLight: "#2a2a2a",
                 correctLevel: QRCode.CorrectLevel.H
             });
         });
@@ -82,9 +82,9 @@ function initPeer() {
         });
 
         peer.on('connection', (connection) => {
+            console.log('✅ Incoming connection received');
             currentConnection = connection;
             setupChat(connection);
-            enableChatMode(); // включаем двухколоночный режим
         });
         
     } catch (e) {
@@ -95,11 +95,15 @@ function initPeer() {
     }
 }
 
-// Функция для переключения в режим чата (дублируем для надёжности)
+// Функция для переключения в режим чата
 function enableChatMode() {
+    console.log('Enabling chat mode');
     const container = document.getElementById('mainContainer');
     if (container) {
         container.classList.add('chat-active');
+        console.log('Chat mode enabled');
+    } else {
+        console.error('Container not found');
     }
 }
 
@@ -114,28 +118,56 @@ document.getElementById('connectBtn').addEventListener('click', () => {
         return;
     }
     
+    console.log('Connecting to peer:', peerId);
     const conn = peer.connect(peerId, { serialization: 'json' });
     currentConnection = conn;
     setupChat(conn);
 });
 
 function setupChat(connection) {
-    document.getElementById('chatSection').style.display = 'block';
+    console.log('Setting up chat with connection');
+    
+    // Показываем секцию чата
+    const chatSection = document.getElementById('chatSection');
+    chatSection.style.display = 'block';
+    
+    // Включаем двухколоночный режим
+    enableChatMode();
+    
     const messagesDiv = document.getElementById('chat');
     messagesDiv.innerHTML = '';
     
-    connection.on('open', () => addMessage('• connected •', 'system'));
-    connection.on('data', (data) => addMessage(data, 'their'));
-    connection.on('error', (err) => addMessage(`error: ${err}`, 'system'));
-    connection.on('close', () => {
-        addMessage('• disconnected •', 'system');
-        document.getElementById('chatSection').style.display = 'none';
+    connection.on('open', () => {
+        console.log('✅ Chat connection open');
+        addMessage('• connected •', 'system');
     });
     
+    connection.on('data', (data) => {
+        console.log('📨 Message received:', data);
+        addMessage(data, 'their');
+    });
+    
+    connection.on('error', (err) => {
+        console.error('❌ Chat error:', err);
+        addMessage(`error: ${err}`, 'system');
+    });
+    
+    connection.on('close', () => {
+        console.log('🔌 Chat connection closed');
+        addMessage('• disconnected •', 'system');
+        chatSection.style.display = 'none';
+        
+        // Убираем двухколоночный режим
+        const container = document.getElementById('mainContainer');
+        container.classList.remove('chat-active');
+    });
+    
+    // Настройка отправки сообщений
     document.getElementById('sendBtn').onclick = () => {
         const input = document.getElementById('messageInput');
         const msg = input.value.trim();
         if (msg && connection.open) {
+            console.log('📤 Sending message:', msg);
             connection.send(msg);
             addMessage(msg, 'mine');
             input.value = '';
@@ -143,7 +175,9 @@ function setupChat(connection) {
     };
     
     document.getElementById('messageInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') document.getElementById('sendBtn').click();
+        if (e.key === 'Enter') {
+            document.getElementById('sendBtn').click();
+        }
     });
 }
 
@@ -170,7 +204,7 @@ function addMessage(text, type) {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-// Обработчик клика по логотипу (из HTML, но дублируем)
+// Обработчик клика по логотипу
 document.addEventListener('DOMContentLoaded', () => {
     const logo = document.getElementById('logo');
     if (logo) {
