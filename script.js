@@ -19,7 +19,6 @@ function initPeer() {
     startBtn.disabled = true;
     startBtn.textContent = 'Initializing...';
     
-    // Настройки для Peer
     const peerOptions = {
         host: SIGNAL_SERVER.host,
         path: SIGNAL_SERVER.path,
@@ -34,7 +33,7 @@ function initPeer() {
                 { urls: 'stun:stun4.l.google.com:19302' }
             ]
         },
-        serialization: 'json', // JSON для всех браузеров
+        serialization: 'json',
         debug: 2
     };
 
@@ -43,7 +42,6 @@ function initPeer() {
     try {
         peer = new Peer(generatePeerId(), peerOptions);
 
-        // Таймаут на случай долгого соединения
         const timeout = setTimeout(() => {
             if (!peer || !peer._open) {
                 startBtn.disabled = false;
@@ -60,24 +58,19 @@ function initPeer() {
             document.getElementById('startSection').style.display = 'none';
             document.getElementById('idSection').style.display = 'block';
             
-            // Упрощённый QR-код (текстом)
+            // Генерируем настоящий QR-код
             const qrContainer = document.getElementById('qrcode');
-            qrContainer.innerHTML = '';
-            const canvas = document.createElement('canvas');
-            qrContainer.appendChild(canvas);
+            qrContainer.innerHTML = ''; // очищаем
             
-            canvas.width = 200;
-            canvas.height = 200;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, 200, 200);
-            ctx.fillStyle = '#000000';
-            ctx.font = '12px monospace';
-            ctx.fillText('ID:', 10, 30);
-            
-            const shortId = id.match(/.{1,4}/g)?.join(' ') || id;
-            ctx.fillText(shortId, 10, 60);
-            ctx.fillText('(scan manually)', 10, 90);
+            // Используем библиотеку qrcodejs
+            new QRCode(qrContainer, {
+                text: id,
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#2a2a2a", // тёмно-серый фон
+                correctLevel: QRCode.CorrectLevel.H
+            });
         });
 
         peer.on('error', (err) => {
@@ -91,6 +84,7 @@ function initPeer() {
         peer.on('connection', (connection) => {
             currentConnection = connection;
             setupChat(connection);
+            enableChatMode(); // включаем двухколоночный режим
         });
         
     } catch (e) {
@@ -98,6 +92,14 @@ function initPeer() {
         startBtn.disabled = false;
         startBtn.textContent = 'Start atoms';
         alert('Error: ' + e.message);
+    }
+}
+
+// Функция для переключения в режим чата (дублируем для надёжности)
+function enableChatMode() {
+    const container = document.getElementById('mainContainer');
+    if (container) {
+        container.classList.add('chat-active');
     }
 }
 
@@ -168,4 +170,15 @@ function addMessage(text, type) {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-
+// Обработчик клика по логотипу (из HTML, но дублируем)
+document.addEventListener('DOMContentLoaded', () => {
+    const logo = document.getElementById('logo');
+    if (logo) {
+        logo.addEventListener('click', function() {
+            this.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 200);
+        });
+    }
+});
